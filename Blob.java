@@ -57,6 +57,9 @@ public class Blob {
                 digest.update(buffer, 0, n);
             }
         }
+        //sean added code below
+        fis.close();
+        //sean added code above
         final byte[] hash = digest.digest();
         return new BigInteger(1, hash).toString(16);
     }
