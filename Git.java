@@ -3,8 +3,7 @@
  * I have neither given nor received unauthorized aid on this assignment.
  * Thank you to .
  * Michael Barr
-*/
-import java.util.*;
+ */
 import java.io.File;
 import java.io.IOException;
 
@@ -41,10 +40,12 @@ public class Git {
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        deleteEverything();
         initRepo();
         assertEverythingCreated();
-        deleteEverything();
+        final var blob = new Blob("test.txt");
+        blob.saveInObjects();
     }
 
     public static void deleteDirectory(File file) {
@@ -74,7 +75,11 @@ public class Git {
     }
 
     static void deleteEverything() {
-        deleteDirectory(new File("git"));
+        final var file = new File("git");
+        if (!file.exists()) {
+            return;
+        }
+        deleteDirectory(file);
         new File("git").delete();
     }
 }
