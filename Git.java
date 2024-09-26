@@ -18,10 +18,10 @@ public class Git {
         deleteEverything();
         initRepo();
         assertEverythingCreated();
-        final var blob = new Blob("test.txt");
+        final var blob = new Blob("aviv.txt");
         blob.blob();
         
-        final var folder = new Blob("bomboclat/");
+        final var folder = new Blob("folder/");
         folder.blob();
         
         //deleteEverything();

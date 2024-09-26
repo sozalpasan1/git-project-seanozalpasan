@@ -32,39 +32,33 @@ public class Blob {
     private void treeBlob(File directory) throws Exception{
         for(File childFile : directory.listFiles()){
             if(childFile.isDirectory()){
-                if(!childFile.equals(directory)){
-                    saveTreeInObjects();
-                    treeBlob(childFile);
-                }
+                treeBlob(childFile);
             } else {
                 Blob chFile = new Blob(childFile.getPath());
                 chFile.saveFileInObjects();
             }
             
         }
-        saveTreeInObjects();
+        saveTreeInObjects(directory);
     }
 
-    private void saveTreeInObjects() throws Exception{
+    private void saveTreeInObjects(File dir) throws Exception{
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            File file = new File(fileName);
-            writer.write("tree " + getHashForTree() + " " + file.getPath());
+            writer.write("tree " + getHashForTree(dir) + " " + dir.getPath());
             writer.newLine();
             writer.close();
-            
-            
             
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        File file = new File("./git/objects/" + getHashForTree());
+        File file = new File("./git/objects/" + getHashForTree(dir));
         if (!file.exists()) {
             file.createNewFile();
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(getAllFilesToHash());
+            writer.write(getAllFilesToHash(dir));
             writer.newLine();
             writer.close();
             
@@ -74,10 +68,10 @@ public class Blob {
 
     }
 
-    public String getAllFilesToHash(){
+    public String getAllFilesToHash(File dirFile){
         StringBuilder hashOfAllStringBuilder = new StringBuilder();
-        File baseDir = new File(fileName);
-        for(File childFile: baseDir.listFiles()){
+        //File baseDir = new File(fileName);
+        for(File childFile: dirFile.listFiles()){
             hashOfAllStringBuilder.append(childFile.getPath() + " ");
         }
 
@@ -85,8 +79,8 @@ public class Blob {
         return hashOfAllStrings;
     }
 
-    public String getHashForTree(){
-        String hashOfAllStrings = getAllFilesToHash();
+    public String getHashForTree(File dirFile){
+        String hashOfAllStrings = getAllFilesToHash(dirFile);
 
         try {
             MessageDigest md = MessageDigest.getInstance("SHA1");
