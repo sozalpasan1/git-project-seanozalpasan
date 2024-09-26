@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,6 +19,9 @@ public class Blob {
 
     public void blob() throws Exception{
         File file = new File(fileName);
+        if(!file.exists()){
+            throw new FileNotFoundException();
+        }
         if(file.isFile()){
             saveFileInObjects();
         }
@@ -41,9 +45,16 @@ public class Blob {
 
     private void saveTreeInObjects() throws Exception{
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            writer.write("tree " + getHashForTree() + " " + fileName);
-            writer.newLine();
-            writer.close();
+            File file = new File(fileName);
+            if(file.listFiles() == null){
+                writer.write("tree " + getHashForTree() + " " + file.getName());
+            } else {
+                writer.write("tree " + getHashForTree() + " " + file.getPath());
+                writer.newLine();
+                writer.close();
+            }
+            
+            
         } catch (IOException e) {
             e.printStackTrace();
         }

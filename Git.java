@@ -21,7 +21,7 @@ public class Git {
         final var blob = new Blob("test.txt");
         blob.blob();
         
-        final var folder = new Blob("bomboclat/");
+        final var folder = new Blob("bomboclat");
         folder.blob();
         
         //deleteEverything();
