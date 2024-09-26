@@ -32,27 +32,26 @@ public class Blob {
     private void treeBlob(File directory) throws Exception{
         for(File childFile : directory.listFiles()){
             if(childFile.isDirectory()){
-                saveTreeInObjects();
-                treeBlob(childFile);
+                if(!childFile.equals(directory)){
+                    saveTreeInObjects();
+                    treeBlob(childFile);
+                }
             } else {
                 Blob chFile = new Blob(childFile.getPath());
                 chFile.saveFileInObjects();
             }
             
         }
-        //saveTreeInObjects();
+        saveTreeInObjects();
     }
 
     private void saveTreeInObjects() throws Exception{
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
             File file = new File(fileName);
-            if(file.listFiles() == null){
-                writer.write("tree " + getHashForTree() + " " + file.getName());
-            } else {
-                writer.write("tree " + getHashForTree() + " " + file.getPath());
-                writer.newLine();
-                writer.close();
-            }
+            writer.write("tree " + getHashForTree() + " " + file.getPath());
+            writer.newLine();
+            writer.close();
+            
             
             
         } catch (IOException e) {
