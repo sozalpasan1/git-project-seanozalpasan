@@ -17,16 +17,18 @@ public class Blob {
     }
 
     public void saveInObjects() throws Exception {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            writer.write(getName());
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        File file = new File("./git/objects/" + getName());
+        //changed this to getSha1() so fileName is correct
+        File file = new File("./git/objects/" + getSha1());
         if (!file.exists()) {
             file.createNewFile();
+        }
+        
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
+            writer.write("blob " + getName());
+            writer.newLine();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         try (BufferedReader fileReader = new BufferedReader(new FileReader(this.fileName));
@@ -35,12 +37,14 @@ public class Blob {
             while ((line = fileReader.readLine()) != null) {
                 writer.write(line);
                 writer.newLine();
+                writer.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    //returns the hash and filepath of the file
     public String getName() throws Exception {
         return getSha1() + " " + this.fileName;
     }
@@ -57,9 +61,7 @@ public class Blob {
                 digest.update(buffer, 0, n);
             }
         }
-        //sean added code below
         fis.close();
-        //sean added code above
         final byte[] hash = digest.digest();
         return new BigInteger(1, hash).toString(16);
     }
