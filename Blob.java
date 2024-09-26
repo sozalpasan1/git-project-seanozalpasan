@@ -16,8 +16,84 @@ public class Blob {
         this.fileName = fileName;
     }
 
-    public void saveInObjects() throws Exception {
-        //changed this to getSha1() so fileName is correct
+    public void blob() throws Exception{
+        File file = new File(fileName);
+        if(file.isFile()){
+            saveFileInObjects();
+        }
+        if(file.isDirectory()){
+            treeBlob(file);
+        }
+    }
+    private void treeBlob(File directory) throws Exception{
+        for(File childFile : directory.listFiles()){
+            if(childFile.isDirectory()){
+                saveTreeInObjects();
+                treeBlob(childFile);
+            } else {
+                Blob chFile = new Blob(childFile.getPath());
+                chFile.saveFileInObjects();
+            }
+            
+        }
+        //saveTreeInObjects();
+    }
+
+    private void saveTreeInObjects() throws Exception{
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
+            writer.write("tree " + getHashForTree() + " " + fileName);
+            writer.newLine();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File file = new File("./git/objects/" + getHashForTree());
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(getAllFilesToHash());
+            writer.newLine();
+            writer.close();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public String getAllFilesToHash(){
+        StringBuilder hashOfAllStringBuilder = new StringBuilder();
+        File baseDir = new File(fileName);
+        for(File childFile: baseDir.listFiles()){
+            hashOfAllStringBuilder.append(childFile.getPath() + " ");
+        }
+
+        String hashOfAllStrings = hashOfAllStringBuilder.toString();
+        return hashOfAllStrings;
+    }
+
+    public String getHashForTree(){
+        String hashOfAllStrings = getAllFilesToHash();
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            byte[] messageDigest = md.digest(hashOfAllStrings.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 40) {
+                hashtext = "0" + hashtext;
+            }
+            //System.out.println(hashOfAllStrings);
+            return hashtext;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void saveFileInObjects() throws Exception {
         File file = new File("./git/objects/" + getSha1());
         if (!file.exists()) {
             file.createNewFile();

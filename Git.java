@@ -19,12 +19,12 @@ public class Git {
         initRepo();
         assertEverythingCreated();
         final var blob = new Blob("test.txt");
-        blob.saveInObjects();
+        blob.blob();
         
-        // final var folder = new Blob("bomboclat/");
-        // folder.saveInObjects();
+        final var folder = new Blob("bomboclat/");
+        folder.blob();
         
-        deleteEverything();
+        //deleteEverything();
     }
     
     
