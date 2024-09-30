@@ -1,19 +1,9 @@
-
-/**
- * I have neither given nor received unauthorized aid on this assignment.
- * Thank you to .
- * Michael Barr
- */
 import java.io.File;
 import java.io.IOException;
 
-
-//git reset --hard HEAD
-//resets everything
+//everything important for this project is in Blob class
+//the main method below is where you test the Blob class
 public class Git {
-    /**
-     * @param args
-     */
     public static void main(String[] args) throws Exception {
         deleteEverything();
         initRepo();
