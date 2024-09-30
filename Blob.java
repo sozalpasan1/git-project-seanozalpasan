@@ -91,12 +91,11 @@ public class Blob {
     }
 
     public void writeEverythingIntoWriteFile(File dir) throws Exception{
-        BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, false));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, true));
         intoWriteFileHelper(dir, writer);
         writer.close();
     }
     /*
-     * the methods above and below this comment are goated
      * together they prepare the file that helps usfind the hash of a tree. 
      * that means writing into a file all the hashes of the subtrees and files in that original tree.
      */
@@ -104,10 +103,11 @@ public class Blob {
         for(File childFile : dir.listFiles()){
             if(childFile.isDirectory()){
                 Blob chFile = new Blob(childFile.getPath());
+                chFile.writeEverythingIntoWriteFile(childFile);
                 writer.write("tree " + chFile.getHashForTree(chFile.writeFile) + " " + childFile.getPath() + "\n");
             } else {
                 Blob chFile = new Blob(childFile.getPath());
-                writer.write("blob " + chFile.getName() + "\n");
+                writer.write("blob " + chFile.getSha1() + " " +chFile.fileName + "\n");
             }
         }
     }
