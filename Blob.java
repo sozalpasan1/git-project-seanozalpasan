@@ -17,6 +17,7 @@ public class Blob {
         this.fileName = fileName;
     }
     
+    //this is where we write the hashes of all subtrees and files when we blob a tree
     File writeFile = new File("./writeFileOf" + fileName);
 
     public void blob() throws Exception{
@@ -33,6 +34,7 @@ public class Blob {
         writeFile.delete();
     }
     private void treeBlob(File directory) throws Exception{
+        //this how we traverse through the directory
         for(File childFile : directory.listFiles()){
             if(childFile.isDirectory()){
                 treeBlob(childFile);
@@ -44,9 +46,11 @@ public class Blob {
         saveTreeInObjects(directory);
     }
 
+    //this is where we write into index and create the hash file in objects for a tree
     private void saveTreeInObjects(File dir) throws Exception{
         writeEverythingIntoWriteFile(dir);
-        String treeHash = getHashForTree(writeFile);
+        String treeHash = getHashForTree(writeFile); //scroll down to read about the first line
+        //the 2 lines above carry
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
             writer.write("tree " + treeHash + " " + dir.getPath());
             writer.newLine();
@@ -71,7 +75,7 @@ public class Blob {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //clears all of write file for the next time it runs on a folder
+        //clears all of writeFile for the next time it runs on a tree
         BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, false));
         writer.write("");
         writer.close();
@@ -83,6 +87,12 @@ public class Blob {
         intoWriteFileHelper(dir, writer);
         writer.close();
     }
+
+    /*
+     * the methods above and below this comment are goated
+     * together they prepare the file that helps usfind the hash of a tree. 
+     * that means writing into a file all the hashes of the subtrees and files in that original tree.
+     */
 
     private void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
         for(File childFile : dir.listFiles()){
@@ -96,67 +106,30 @@ public class Blob {
         }
     }
 
-    /*
-     * make this return a File, so that in getHashForTree(file) we just hash the file we gave it instead of the string.
-     */
-    // public String getAllFilesToHash(File dirFile){
-    //     StringBuilder hashOfAllStringBuilder = new StringBuilder();
-    //     //File baseDir = new File(fileName);
-    //     for(File childFile: dirFile.listFiles()){
-    //         hashOfAllStringBuilder.append(childFile.getPath() + " ");
-    //     }
-    //     String hashOfAllStrings = hashOfAllStringBuilder.toString();
-    //     return hashOfAllStrings;
-    // }
 
-    // public void getAllFilesToHash(File dirFile) throws Exception{
-    //     //File tempFile = File.createTempFile("wewillwriteinhere", null);
-    //     try(BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, true))){
-    //         getAllFilesToHashHelper(dirFile, writer);
-    //         //writer.close();
-    //     }
-    // }
-
-    // private void getAllFilesToHashHelper(File file, BufferedWriter writer) throws Exception{
-    //     for(File childFile : file.listFiles()){
-    //         if(childFile.isDirectory()){
-    //             // Blob chFile = new Blob(childFile.getPath());
-    //             // chFile.saveTreeInObjects(childFile);
-    //             getAllFilesToHashHelper(file, writer);
-    //         } else {
-    //             Blob chFile = new Blob(childFile.getPath());
-    //             writer.write("blob " + chFile.getName() + "\n");
-    //             writer.close();
-    //         }
-    //         //writer.close();
-    //     }
-    //     //writer.close();
-    // }
-    
-
+    //its called getHashForTree because the parameter is a tree
+    //other than that its standard hashing
     public String getHashForTree(File hashThisFile){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA1");
-            //byte[] messageDigest = md.digest(hashOfAllStrings.getBytes());
-            byte[] messageDigest = md.digest(Files.readAllBytes(hashThisFile.toPath())); //this is the file from getAllFilesToHash
+            byte[] messageDigest = md.digest(Files.readAllBytes(hashThisFile.toPath()));
             BigInteger no = new BigInteger(1, messageDigest);
             String hashtext = no.toString(16);
             while (hashtext.length() < 40) {
                 hashtext = "0" + hashtext;
             }
-            //System.out.println(hashOfAllStrings);
             return hashtext;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+    //saves file in objects and writes it into index
     public void saveFileInObjects() throws Exception {
         File file = new File("./git/objects/" + getSha1());
         if (!file.exists()) {
             file.createNewFile();
         }
-        
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
             writer.write("blob " + getName());
             writer.newLine();
@@ -164,7 +137,6 @@ public class Blob {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         try (BufferedReader fileReader = new BufferedReader(new FileReader(this.fileName));
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             String line;
