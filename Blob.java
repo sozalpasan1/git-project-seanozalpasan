@@ -17,6 +17,11 @@ public class Blob {
         this.fileName = fileName;
     }
     
+
+    //IMPORTANT
+    //for codes that commented in places we are writing, that was just because i was unsure of formatting
+    //the commented code is the full relative path, and the current code is just the name
+
     //this is where we write the hashes of all subtrees and files when we blob a tree
     File writeFile = new File("./writeFileOf" + fileName);
 
@@ -60,7 +65,12 @@ public class Blob {
         String treeHash = getHashForTree(writeFile); //scroll down to read about the first line
         //the 2 lines above carry
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            writer.write("tree " + treeHash + " " + dir.getPath());
+            if(dir.getParentFile() != null){
+                writer.write("tree " + treeHash + " " + dir.getParentFile().getName() + "/" + dir.getName());
+            } else {
+                writer.write("tree " + treeHash + " " + dir.getName());
+            }
+            //writer.write("tree " + treeHash + " " + dir.getPath());
             writer.newLine();
             writer.close();
             
@@ -104,10 +114,12 @@ public class Blob {
             if(childFile.isDirectory()){
                 Blob chFile = new Blob(childFile.getPath());
                 chFile.writeEverythingIntoWriteFile(childFile);
-                writer.write("tree " + chFile.getHashForTree(chFile.writeFile) + " " + childFile.getPath() + "\n");
+                //writer.write("tree " + chFile.getHashForTree(chFile.writeFile) + " " + childFile.getPath() + "\n");
+                writer.write("tree " + chFile.getHashForTree(chFile.writeFile) + " " + childFile.getName() + "\n");
             } else {
                 Blob chFile = new Blob(childFile.getPath());
-                writer.write("blob " + chFile.getSha1() + " " +chFile.fileName + "\n");
+                //writer.write("blob " + chFile.getSha1() + " " +chFile.fileName + "\n");
+                writer.write("blob " + chFile.getSha1() + " " + childFile.getName() + "\n");
             }
         }
     }
@@ -137,7 +149,13 @@ public class Blob {
             file.createNewFile();
         }
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            writer.write("blob " + getName());
+            File makeItEasy = new File(fileName);
+            if(makeItEasy.getParentFile() != null){
+                writer.write("blob " + getSha1() + " " + makeItEasy.getParentFile().getName() + "/" + makeItEasy.getName());
+            } else {
+                writer.write("blob " + getSha1() + " " + makeItEasy.getName());
+            }
+            //writer.write("blob " + getName());
             writer.newLine();
             writer.close();
         } catch (IOException e) {
