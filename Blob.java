@@ -25,6 +25,14 @@ public class Blob {
         if(!file.exists()){
             throw new FileNotFoundException();
         }
+        if(!file.canRead() && !file.canWrite()){
+            System.out.println("dont have perms to read or write this file");
+            throw new IllegalArgumentException();
+        }
+        if(file.isHidden()){
+            System.out.println("this file is hidden. make it unhidden to save!");
+            throw new IllegalArgumentException();
+        }
         if(file.isFile()){
             saveFileInObjects();
         }
@@ -87,13 +95,11 @@ public class Blob {
         intoWriteFileHelper(dir, writer);
         writer.close();
     }
-
     /*
      * the methods above and below this comment are goated
      * together they prepare the file that helps usfind the hash of a tree. 
      * that means writing into a file all the hashes of the subtrees and files in that original tree.
      */
-
     private void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
         for(File childFile : dir.listFiles()){
             if(childFile.isDirectory()){
