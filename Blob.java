@@ -9,13 +9,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.MessageDigest;
+import java.nio.file.*;
 
 public class Blob {
     String fileName;
-
     public Blob(String fileName) {
         this.fileName = fileName;
     }
+    
+    File writeFile = new File("./writeFileOf" + fileName);
 
     public void blob() throws Exception{
         File file = new File(fileName);
@@ -28,6 +30,7 @@ public class Blob {
         if(file.isDirectory()){
             treeBlob(file);
         }
+        writeFile.delete();
     }
     private void treeBlob(File directory) throws Exception{
         for(File childFile : directory.listFiles()){
@@ -37,14 +40,15 @@ public class Blob {
                 Blob chFile = new Blob(childFile.getPath());
                 chFile.saveFileInObjects();
             }
-            
         }
         saveTreeInObjects(directory);
     }
 
     private void saveTreeInObjects(File dir) throws Exception{
+        writeEverythingIntoWriteFile(dir);
+        String treeHash = getHashForTree(writeFile);
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/index", true))) {
-            writer.write("tree " + getHashForTree(dir) + " " + dir.getPath());
+            writer.write("tree " + treeHash + " " + dir.getPath());
             writer.newLine();
             writer.close();
             
@@ -52,39 +56,89 @@ public class Blob {
             e.printStackTrace();
         }
 
-        File file = new File("./git/objects/" + getHashForTree(dir));
-        if (!file.exists()) {
-            file.createNewFile();
+        File treeHashFile = new File("./git/objects/" + treeHash);
+        if (!treeHashFile.exists()) {
+            treeHashFile.createNewFile();
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(getAllFilesToHash(dir));
-            writer.newLine();
+        //this is where we write all the contents of the file that has all the correctly formatted stuff of the tree
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(treeHashFile, true))) {
+            Path bytes = writeFile.toPath();
+            String theStuffWeWroteInTempFile = new String(Files.readAllBytes(bytes));
+            writer.write(theStuffWeWroteInTempFile);
             writer.close();
             
         } catch (IOException e) {
             e.printStackTrace();
         }
+        //clears all of write file for the next time it runs on a folder
+        BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, false));
+        writer.write("");
+        writer.close();
 
     }
 
-    public String getAllFilesToHash(File dirFile){
-        StringBuilder hashOfAllStringBuilder = new StringBuilder();
-        //File baseDir = new File(fileName);
-        for(File childFile: dirFile.listFiles()){
-            hashOfAllStringBuilder.append(childFile.getPath() + " ");
+    public void writeEverythingIntoWriteFile(File dir) throws Exception{
+        BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, false));
+        intoWriteFileHelper(dir, writer);
+        writer.close();
+    }
+
+    private void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
+        for(File childFile : dir.listFiles()){
+            if(childFile.isDirectory()){
+                Blob chFile = new Blob(childFile.getPath());
+                writer.write("tree " + chFile.getHashForTree(chFile.writeFile) + " " + childFile.getPath() + "\n");
+            } else {
+                Blob chFile = new Blob(childFile.getPath());
+                writer.write("blob " + chFile.getName() + "\n");
+            }
         }
-
-        String hashOfAllStrings = hashOfAllStringBuilder.toString();
-        return hashOfAllStrings;
     }
 
-    public String getHashForTree(File dirFile){
-        String hashOfAllStrings = getAllFilesToHash(dirFile);
+    /*
+     * make this return a File, so that in getHashForTree(file) we just hash the file we gave it instead of the string.
+     */
+    // public String getAllFilesToHash(File dirFile){
+    //     StringBuilder hashOfAllStringBuilder = new StringBuilder();
+    //     //File baseDir = new File(fileName);
+    //     for(File childFile: dirFile.listFiles()){
+    //         hashOfAllStringBuilder.append(childFile.getPath() + " ");
+    //     }
+    //     String hashOfAllStrings = hashOfAllStringBuilder.toString();
+    //     return hashOfAllStrings;
+    // }
 
+    // public void getAllFilesToHash(File dirFile) throws Exception{
+    //     //File tempFile = File.createTempFile("wewillwriteinhere", null);
+    //     try(BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, true))){
+    //         getAllFilesToHashHelper(dirFile, writer);
+    //         //writer.close();
+    //     }
+    // }
+
+    // private void getAllFilesToHashHelper(File file, BufferedWriter writer) throws Exception{
+    //     for(File childFile : file.listFiles()){
+    //         if(childFile.isDirectory()){
+    //             // Blob chFile = new Blob(childFile.getPath());
+    //             // chFile.saveTreeInObjects(childFile);
+    //             getAllFilesToHashHelper(file, writer);
+    //         } else {
+    //             Blob chFile = new Blob(childFile.getPath());
+    //             writer.write("blob " + chFile.getName() + "\n");
+    //             writer.close();
+    //         }
+    //         //writer.close();
+    //     }
+    //     //writer.close();
+    // }
+    
+
+    public String getHashForTree(File hashThisFile){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA1");
-            byte[] messageDigest = md.digest(hashOfAllStrings.getBytes());
+            //byte[] messageDigest = md.digest(hashOfAllStrings.getBytes());
+            byte[] messageDigest = md.digest(Files.readAllBytes(hashThisFile.toPath())); //this is the file from getAllFilesToHash
             BigInteger no = new BigInteger(1, messageDigest);
             String hashtext = no.toString(16);
             while (hashtext.length() < 40) {
