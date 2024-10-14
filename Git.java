@@ -22,6 +22,7 @@ public class Git {
         File gitDir = new File("git");
         File objectsDir = new File(gitDir, "objects");
         File indexFile = new File(gitDir, "index");
+        File HEAD = new File(gitDir, "HEAD");
         final var doesEverythingExist = gitDir.exists() && objectsDir.exists() && indexFile.exists();
 
         if (!gitDir.exists()) {
@@ -33,6 +34,13 @@ public class Git {
         if (!indexFile.exists()) {
             try {
                 indexFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (!HEAD.exists()) {
+            try {
+                HEAD.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }

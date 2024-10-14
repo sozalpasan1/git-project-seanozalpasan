@@ -17,7 +17,6 @@ public class Blob {
         this.fileName = fileName;
     }
     
-
     //IMPORTANT
     //for codes that commented in places we are writing, that was just because i was unsure of formatting
     //the commented code is the full relative path, and the current code is just the name
@@ -106,7 +105,7 @@ public class Blob {
         writer.close();
     }
     /*
-     * together they prepare the file that helps usfind the hash of a tree. 
+     * together they prepare the file that helps us find the hash of a tree. 
      * that means writing into a file all the hashes of the subtrees and files in that original tree.
      */
     private void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
@@ -127,7 +126,7 @@ public class Blob {
 
     //its called getHashForTree because the parameter is a tree
     //other than that its standard hashing
-    public String getHashForTree(File hashThisFile){
+    public static String getHashForTree(File hashThisFile){
         try {
             MessageDigest md = MessageDigest.getInstance("SHA1");
             byte[] messageDigest = md.digest(Files.readAllBytes(hashThisFile.toPath()));
