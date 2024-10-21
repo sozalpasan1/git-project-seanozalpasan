@@ -3,16 +3,16 @@ import java.io.IOException;
 
 //everything important for this project is in Blob class
 //the main method below is where you test the Blob class
-public class Git {
+public class Git implements GitInterface {
     public static void main(String[] args) throws Exception {
         deleteEverything();
         initRepo();
         assertEverythingCreated();
-        final var blob = new Blob("aviv.txt");
-        blob.blob();
+        // final var blob = new Blob("aviv.txt");
+        // blob.blob();
         
-        final var folder = new Blob("folder/");
-        folder.blob();
+        // final var folder = new Blob("folder/");
+        // folder.blob();
         
         //deleteEverything();
     }
@@ -85,5 +85,26 @@ public class Git {
         }
         deleteDirectory(file);
         new File("git").delete();
+    }
+
+
+    @Override
+    public void stage(String filePath) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'stage'");
+    }
+
+
+    @Override
+    public String commit(String author, String message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'commit'");
+    }
+
+
+    @Override
+    public void checkout(String commitHash) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'checkout'");
     }
 }

@@ -12,7 +12,7 @@ import java.security.MessageDigest;
 import java.nio.file.*;
 
 public class Blob {
-    String fileName;
+    static String fileName;
     public Blob(String fileName) {
         this.fileName = fileName;
     }
@@ -22,7 +22,7 @@ public class Blob {
     //the commented code is the full relative path, and the current code is just the name
 
     //this is where we write the hashes of all subtrees and files when we blob a tree
-    File writeFile = new File("./writeFileOf" + fileName);
+    static File writeFile = new File("./writeFileOf" + fileName);
 
     public void blob() throws Exception{
         File file = new File(fileName);
@@ -45,6 +45,7 @@ public class Blob {
         }
         writeFile.delete();
     }
+    
     private void treeBlob(File directory) throws Exception{
         //this how we traverse through the directory
         for(File childFile : directory.listFiles()){
@@ -59,7 +60,7 @@ public class Blob {
     }
 
     //this is where we write into index and create the hash file in objects for a tree
-    private void saveTreeInObjects(File dir) throws Exception{
+    public static void saveTreeInObjects(File dir) throws Exception{
         writeEverythingIntoWriteFile(dir);
         String treeHash = getHashForTree(writeFile); //scroll down to read about the first line
         //the 2 lines above carry
@@ -99,7 +100,7 @@ public class Blob {
 
     }
 
-    public void writeEverythingIntoWriteFile(File dir) throws Exception{
+    public static void writeEverythingIntoWriteFile(File dir) throws Exception{
         BufferedWriter writer = new BufferedWriter(new FileWriter(writeFile, true));
         intoWriteFileHelper(dir, writer);
         writer.close();
@@ -108,7 +109,7 @@ public class Blob {
      * together they prepare the file that helps us find the hash of a tree. 
      * that means writing into a file all the hashes of the subtrees and files in that original tree.
      */
-    private void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
+    private static void intoWriteFileHelper(File dir, BufferedWriter writer) throws Exception{
         for(File childFile : dir.listFiles()){
             if(childFile.isDirectory()){
                 Blob chFile = new Blob(childFile.getPath());

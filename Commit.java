@@ -10,12 +10,13 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.nio.file.*;
 import java.time.LocalDate;
-import Blob;
 
 public class Commit {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         Commit newCommit = new Commit("me", "hello");
+        stage("/Users/oliviakong/Desktop/everything basically/honors topics in cs 2024/git-project-seanozalpasan-forkedcode/testFolder");
+        commit("olivia", "this is a test commit");
         commitToString();
     }
 
@@ -25,27 +26,25 @@ public class Commit {
     private static String date;
     private static String treeHash;
 
-    public Commit (String author, String commitMessage) throws IOException {
+    public Commit (String author, String commitMessage) throws Exception {
         File HEAD = new File ("git", "HEAD");
         File index = new File ("git", "index");
-        // File currentIndexSnapshot = new File("");
 
         // set parent hash
         if (HEAD.length() == 0) {
             parent = "";
         } else {
-            String hash = "";
-            BufferedReader reader = new BufferedReader(new FileReader(HEAD));
-            hash = reader.readLine();
-            parent = hash;
+            try (BufferedReader reader = new BufferedReader(new FileReader(HEAD))) {
+                String hash = reader.readLine();
+                Commit.parent = hash;
+            } catch (IOException e) {
+                e.printStackTrace();
+                Commit.parent = "";
+            }
         }
 
         // set current tree hash
-        if (HEAD.length() == 0) {
-            treeHash = Blob.getHashForTree(index);
-        } else {
-            treeHash = getCurrentIndexHash();
-        }
+        Commit.treeHash = getCurrentIndexHash();
 
         // set author, message, date
         Commit.author = author;
@@ -53,6 +52,16 @@ public class Commit {
 
         LocalDate currentDate = LocalDate.now();
         Commit.date = currentDate.toString();
+    }
+
+    public static String makeCommitMessage() {
+        String commitMessage = ("tree: " + getTreeHash()
+                                + "\nparent: " + getParent()
+                                + "\nauthor: " + getAuthor()
+                                + "\ndate: " + getDate()
+                                + "\nmessage: " + getMessage());
+        
+        return commitMessage;
     }
 
     public static String getTreeHash() {
@@ -77,25 +86,21 @@ public class Commit {
 
     public static void commitToString() {
         System.out.println ("tree: " + getTreeHash() + "\nparent: " + getParent() + "\nauthor: " + getAuthor()
-        + "\ndate: " + getDate() + "\nmessage: " + getMessage());
+         + "\ndate: " + getDate() + "\nmessage: " + getMessage());
     }
 
-    private static String getCurrentIndexHash() {
-        // gets the hash of the current snapshot of index file
-        // just add the previous to the index file and then hash
-        // the index file bc ur gonna empty it anyway after creating this commit
-        //hash of the folder representing the repository's state at the time of the commit)
-        // -- get the hash of the previous commit's currentIndexState + the lines inside of the temp index file
+    // gets the hash of the root directory
+    private static String getCurrentIndexHash() throws Exception {
 
         // manually set rootDirectory
-        File rootDir = new File ("git", "testFolder");
+        File rootDir = new File ("/Users/oliviakong/Desktop/everything basically/honors topics in cs 2024/git-project-seanozalpasan-forkedcode/testFolder");
 
-        final var blob = new Blob(rootDir.getName());
-        Blob.saveTreeInObjects(rootDir);
+        // get tree hash
+        return Blob.getHashForTree(rootDir);
 
-        return "";
     }
 
+    // stages by clearing index and creating blobs for root dir
     public static void stage (String filePath) throws Exception {
 
         // clear index
@@ -107,24 +112,48 @@ public class Commit {
             e.printStackTrace();
         }
 
-        // recreate the entire root tree again --> take hash
-        getCurrentIndexHash();
+        // create blobs for root tree
+        final var rootDir = new Blob("testFolder/");
+        rootDir.blob();
+
     }
 
-    public static String commit(String author, String message) throws IOException {
+    // commits by creating new commit message, saving commit file to objects, updating HEAD
+    public static String commit(String author, String message) throws Exception {
         
-        // create the commit file message with the commit object then write it into the commit file
+        // create the commit file message
         Commit newCommit = new Commit(author, message);
+        String commitMessage = makeCommitMessage();
 
-        // create a new file with the current index snapshot
+        // get hash of commit file
+        String commitHash = "";
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA1");
+            byte[] messageDigest = md.digest(commitMessage.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            commitHash = no.toString(16);
+            while (commitHash.length() < 40) {
+                commitHash = "0" + commitHash;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // save commit file to objects
+        File file = new File("./git/objects/" + commitHash);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
 
         // update the HEAD file to be the hash of the most recent commit
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("./git/HEAD"))) {
+            writer.write(commitHash);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        // the commit file is a blob
-
-        // the commit file blob points to the hash of the root tree
-
-        return "the SHA1 hash of the most recent commit";
+        return commitHash;
     }
 
 }
